@@ -9,10 +9,13 @@ TIME_LIMIT = 10
 TOTAL_QUESTIONS = 100
 MIN_NUMBER = 1
 MAX_NUMBER = 12
+REFRESH_RATE = 0.1  # seconds
 
 st.set_page_config(layout="centered")
 
-# Center text + green progress bar
+# -----------------------------
+# STYLING
+# -----------------------------
 st.markdown("""
 <style>
 div.block-container {
@@ -25,7 +28,7 @@ div.block-container {
 """, unsafe_allow_html=True)
 
 # -----------------------------
-# SESSION STATE INIT
+# SESSION STATE DEFAULTS
 # -----------------------------
 defaults = {
     "game_started": False,
@@ -87,7 +90,6 @@ def submit_answer():
         st.session_state.question = new_question()
         st.session_state.start_time = time.time()
 
-        # Clear safely
         st.session_state.answer_input = ""
 
     except ValueError:
@@ -112,6 +114,7 @@ if st.session_state.game_started and not st.session_state.game_over:
     st.markdown(f"### Question {st.session_state.question_number} / {TOTAL_QUESTIONS}")
     st.markdown(f"## :yellow[{st.session_state.question} = ?]")
 
+    # TIMER
     elapsed = time.time() - st.session_state.start_time
     remaining = TIME_LIMIT - elapsed
 
@@ -132,6 +135,10 @@ if st.session_state.game_started and not st.session_state.game_over:
         key="answer_input",
         on_change=submit_answer
     )
+
+    # 🔥 AUTO REFRESH LOOP (THIS MAKES TIMER WORK)
+    time.sleep(REFRESH_RATE)
+    st.rerun()
 
 # -----------------------------
 # GAME OVER
