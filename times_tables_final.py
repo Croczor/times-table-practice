@@ -3,85 +3,108 @@ import streamlit as st
 import random
 import time
 
-# ------------------------------
-# Configuration
-# ------------------------------
+# -----------------------------
+# CONFIG
+# -----------------------------
 TIME_LIMIT = 10
 TOTAL_QUESTIONS = 100
 MIN_NUMBER = 1
 MAX_NUMBER = 12
 
-# ------------------------------
-# Session State Setup
-# ------------------------------
-if "started" not in st.session_state:
-    st.session_state.started = False
+# -----------------------------
+# PAGE CONFIG
+# -----------------------------
+st.set_page_config(layout="centered")
+
+# Custom CSS to center everything + green progress bar
+st.markdown("""
+<style>
+div.block-container {
+    text-align: center;
+}
+.stProgress > div > div > div > div {
+    background-color: #00cc44;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# -----------------------------
+# SESSION STATE INIT
+# -----------------------------
+if "game_started" not in st.session_state:
+    st.session_state.game_started = False
+    st.session_state.game_over = False
     st.session_state.score = 0
     st.session_state.question_number = 0
     st.session_state.total_attempts = 0
-    st.session_state.start_time = 0
-    st.session_state.total_start_time = 0
     st.session_state.correct_answer = 0
-    st.session_state.game_over = False
+    st.session_state.start_time = None
+    st.session_state.total_start_time = None
 
-# ------------------------------
-# Helper Functions
-# ------------------------------
-def generate_question():
+# -----------------------------
+# FUNCTIONS
+# -----------------------------
+def new_question():
     num1 = random.randint(MIN_NUMBER, MAX_NUMBER)
     num2 = random.randint(MIN_NUMBER, MAX_NUMBER)
     st.session_state.correct_answer = num1 * num2
     return f"{num1} × {num2}"
 
+def start_game():
+    st.session_state.game_started = True
+    st.session_state.game_over = False
+    st.session_state.score = 0
+    st.session_state.question_number = 1
+    st.session_state.total_attempts = 0
+    st.session_state.total_start_time = time.time()
+    st.session_state.start_time = time.time()
+    st.session_state.question = new_question()
+
 def end_game(reason):
     st.session_state.game_over = True
     st.session_state.reason = reason
 
-
-# ------------------------------
-# UI
-# ------------------------------
-st.title("Times Table Practice")
-
-if not st.session_state.started:
+# -----------------------------
+# START SCREEN
+# -----------------------------
+if not st.session_state.game_started:
+    st.title("Times Table Practice")
     if st.button("Start Game"):
-        st.session_state.started = True
-        st.session_state.score = 0
-        st.session_state.question_number = 0
-        st.session_state.total_attempts = 0
-        st.session_state.total_start_time = time.time()
-        st.session_state.question = generate_question()
+        start_game()
+        st.rerun()
 
-# ------------------------------
-# Game Running
-# ------------------------------
-if st.session_state.started and not st.session_state.game_over:
+# -----------------------------
+# GAME RUNNING
+# -----------------------------
+if st.session_state.game_started and not st.session_state.game_over:
 
-    # Question Counter
-    st.write(f"### Question {st.session_state.question_number + 1} / {TOTAL_QUESTIONS}")
+    st.title("Times Table Practice")
 
-    # Show Question
+    # Question counter
+    st.markdown(f"### Question {st.session_state.question_number} / {TOTAL_QUESTIONS}")
+
+    # Show question
     st.markdown(f"## :yellow[{st.session_state.question} = ?]")
 
-    # Timer
-    elapsed = time.time() - st.session_state.start_time if st.session_state.start_time else 0
+    # Timer logic
+    elapsed = time.time() - st.session_state.start_time
     remaining = TIME_LIMIT - elapsed
 
     if remaining <= 0:
         end_game("Time's Up!")
+        st.rerun()
 
-    progress = remaining / TIME_LIMIT
-    if progress < 0:
-        progress = 0
-
+    progress = max(remaining / TIME_LIMIT, 0)
     st.progress(progress)
 
-    # Total Time Display
-    total_elapsed = time.time() - st.session_state.total_start_time
-    st.write(f"Total Time: {total_elapsed:.2f}s")
+    st.markdown(f"**Time Remaining:** {remaining:.1f}s")
 
-    # Answer Input
-    answer = st.text_input("Your Answer", key="answer_input")
+    # Total time
+    total_elapsed = time.time() - st.session_state.total_start_time
+    st.markdown(f"**Total Time:** {total_elapsed:.1f}s")
+
+    # Answer input
+    answer = st.text_input("Your Answer", key="answer")
 
     if answer:
         try:
@@ -91,22 +114,22 @@ if st.session_state.started and not st.session_state.game_over:
             if user_answer == st.session_state.correct_answer:
                 st.session_state.score += 1
 
-            st.session_state.question_number += 1
-
             if st.session_state.question_number >= TOTAL_QUESTIONS:
                 end_game("Completed 100 Questions!")
             else:
-                st.session_state.question = generate_question()
+                st.session_state.question_number += 1
+                st.session_state.question = new_question()
                 st.session_state.start_time = time.time()
 
+            st.session_state.answer = ""
             st.rerun()
 
         except ValueError:
-            pass
+            st.session_state.answer = ""
 
-# ------------------------------
-# End Screen
-# ------------------------------
+# -----------------------------
+# GAME OVER SCREEN
+# -----------------------------
 if st.session_state.game_over:
 
     total_time = time.time() - st.session_state.total_start_time
@@ -119,15 +142,16 @@ if st.session_state.game_over:
         if st.session_state.total_attempts > 0 else 0
     )
 
-    st.success("Game Over!")
-    st.write(f"Reason: {st.session_state.reason}")
-    st.write(f"Score: {st.session_state.score}")
-    st.write(f"Questions Attempted: {st.session_state.total_attempts}")
-    st.write(f"Accuracy: {accuracy:.2f}%")
-    st.write(f"Total Time: {total_time:.2f}s")
-    st.write(f"Average Time per Question: {average_time:.2f}s")
+    st.title("Game Over")
 
-    if st.button("Restart"):
-        for key in st.session_state.keys():
+    st.markdown(f"### {st.session_state.reason}")
+    st.markdown(f"**Score:** {st.session_state.score}")
+    st.markdown(f"**Questions Attempted:** {st.session_state.total_attempts}")
+    st.markdown(f"**Accuracy:** {accuracy:.2f}%")
+    st.markdown(f"**Total Time:** {total_time:.2f}s")
+    st.markdown(f"**Average Time per Question:** {average_time:.2f}s")
+
+    if st.button("Play Again"):
+        for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
