@@ -135,8 +135,8 @@ if not st.session_state.game_started:
 
     st.title("Times Table Practice System")
 
-    st.markdown("### Teacher Editable Text Below")
-    st.markdown("You can customise instructions here.")
+    st.markdown("### Please enter your name below:")
+    st.markdown("Please use the naming scheme: First name initial, Lst name first thre letters, year level. E.g., JSMI7 for John Smith in year 7.")
 
     st.text_input("Student Name:", key="player_name")
 
