@@ -136,7 +136,7 @@ if not st.session_state.game_started:
     st.title("Times Table Practice System")
 
     st.markdown("### Please enter your name below:")
-    st.markdown("Please use the naming scheme: First name initial, Lst name first thre letters, year level. E.g., JSMI7 for John Smith in year 7.")
+    st.markdown("Please use the naming scheme: First name initial, Last name first three letters, Year level. E.g., JSMI7 for John Smith in year 7.")
 
     st.text_input("Student Name:", key="player_name")
 
@@ -220,3 +220,4 @@ if st.session_state.game_over:
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
+
