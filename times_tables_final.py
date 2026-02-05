@@ -108,6 +108,11 @@ def submit_answer():
 
 def save_progress():
 
+    import gspread
+    from google.oauth2.service_account import Credentials
+    from datetime import datetime
+    import pytz
+
     scope = [
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive"
@@ -119,51 +124,35 @@ def save_progress():
     )
 
     client = gspread.authorize(creds)
-    
-    st.write("Connected to Google Sheets")
-    
+
     sheet = client.open_by_key("1co5kojLIbT4zYpIGQo6hgJLypN5gCQ4mII4Y9TnQgsE").sheet1
 
-    # Convert to AEST
-    from datetime import datetime
-    import pytz
-
+    # Convert time to AEST
     aest = pytz.timezone("Australia/Sydney")
     now = datetime.now(aest)
     formatted_time = now.strftime("%d/%m/%Y %H:%M:%S")
-    
-    name = st.session_state.player_name.strip().upper()
-    if not name:
-        name = "UNKNOWN"
 
-    accuracy = (
-        st.session_state.score / st.session_state.total_attempts * 100
-        if st.session_state.total_attempts > 0 else 0
-    )
+    # Format time played (mm:ss)
+    total_seconds = int(st.session_state.elapsed_time)
+    minutes = total_seconds // 60
+    seconds = total_seconds % 60
+    time_string = f"{minutes:02}:{seconds:02}"
 
-    total_time = time.time() - st.session_state.start_time
-    formatted_time = format_time(total_time)
-
-    # Count previous attempts for this student
-    records = sheet.get_all_records()
-    attempt_number = sum(1 for r in records if r["Student"] == name) + 1
-
-    wrong_answers = " | ".join(st.session_state.wrong_questions)
-
+    # Row data
     row_data = [
         formatted_time,
         st.session_state.name,
         st.session_state.score,
         st.session_state.total_questions,
-        st.session_state.wrong_answers,
+        f"{st.session_state.accuracy:.1f}%",
+        f"{st.session_state.avg_time:.2f}s",
+        time_string,
         st.session_state.time_limit
     ]
 
-    # Append starting at B3
-    sheet.append_row(
-        row_data,
-        table_range="B3"
-    )
+    # Append to B3 downward
+    sheet.append_row(row_data, table_range="B3")
+
 
 # -----------------------------
 # START SCREEN
@@ -259,6 +248,7 @@ if st.session_state.game_over:
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
+
 
 
 
