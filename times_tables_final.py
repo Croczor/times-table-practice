@@ -200,7 +200,7 @@ if not st.session_state.game_started:
 # -----------------------------
 # GAME RUNNING
 # -----------------------------
-
+else:
     if st.session_state.game_started and not st.session_state.game_over:
     
         st.title("Times Table Practice")
@@ -259,6 +259,7 @@ if st.session_state.game_over:
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
+
 
 
 
