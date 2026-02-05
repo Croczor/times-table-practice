@@ -123,7 +123,14 @@ def save_progress():
     st.write("Connected to Google Sheets")
     
     sheet = client.open_by_key("1co5kojLIbT4zYpIGQo6hgJLypN5gCQ4mII4Y9TnQgsE").sheet1
-    
+
+    # Convert to AEST
+    from datetime import datetime
+    import pytz
+
+    aest = pytz.timezone("Australia/Sydney")
+    now = datetime.now(aest)
+    formatted_time = now.strftime("%d/%m/%Y %H:%M:%S")
     
     name = st.session_state.player_name.strip().upper()
     if not name:
@@ -143,10 +150,10 @@ def save_progress():
 
     wrong_answers = " | ".join(st.session_state.wrong_questions)
 
-    sheet.append_row([
+    row_data = [
         name,
         attempt_number,
-        str(datetime.now()),
+        formatted_time,
         st.session_state.score,
         st.session_state.total_attempts,
         round(accuracy, 2),
@@ -154,21 +161,23 @@ def save_progress():
         st.session_state.max_number,
         st.session_state.time_limit_minutes,
         wrong_answers
-    ])
+    ]
+    
+    sheet.append_row(
+        row_data,
+        table_range="B3"
+    )
 
 # -----------------------------
 # START SCREEN
 # -----------------------------
-
-if st.button("Test Google Sheets Connection"):
-    save_progress()
 
 if not st.session_state.game_started:
 
     st.title("Times Table Practice System")
 
     st.markdown("### Please enter your name below:")
-    st.markdown("Please use the naming scheme: First name initial, Last name first three letters, Year level. E.g., JSMI7 for John Smith in year 7.")
+    st.markdown("Please use the naming scheme: Year level, First name initial, Last name first three letters. E.g., 7JSMI for John Smith in year 7.")
 
     st.text_input("Student Name:", key="player_name")
 
@@ -194,6 +203,7 @@ if not st.session_state.game_started:
 # -----------------------------
 # GAME RUNNING
 # -----------------------------
+else:
 if st.session_state.game_started and not st.session_state.game_over:
 
     st.title("Times Table Practice")
@@ -252,6 +262,7 @@ if st.session_state.game_over:
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
+
 
 
 
