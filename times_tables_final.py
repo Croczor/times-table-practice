@@ -2,6 +2,8 @@ import streamlit as st
 import random
 import time
 from datetime import datetime
+import gspread
+from google.oauth2.service_account import Credentials
 
 # -----------------------------
 # PAGE CONFIG
@@ -105,28 +107,51 @@ def submit_answer():
         st.session_state.answer_input = ""
 
 def save_progress():
+
+    scope = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive"
+    ]
+
+    creds = Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"],
+        scopes=scope
+    )
+
+    client = gspread.authorize(creds)
+
+    sheet = client.open("Times Table Progress").sheet1
+
+    name = st.session_state.player_name.strip().upper()
+    if not name:
+        name = "UNKNOWN"
+
     accuracy = (
         st.session_state.score / st.session_state.total_attempts * 100
         if st.session_state.total_attempts > 0 else 0
     )
 
     total_time = time.time() - st.session_state.start_time
+    formatted_time = format_time(total_time)
 
-    with open("progress_log.txt", "a") as f:
-        f.write("\n-----------------------------\n")
-        f.write(f"Date: {datetime.now()}\n")
-        f.write(f"Name: {st.session_state.player_name}\n")
-        f.write(f"Score: {st.session_state.score}\n")
-        f.write(f"Attempts: {st.session_state.total_attempts}\n")
-        f.write(f"Accuracy: {accuracy:.2f}%\n")
-        f.write(f"Time: {format_time(total_time)}\n")
-        f.write(f"Max Number: {st.session_state.max_number}\n")
-        f.write(f"Time Limit: {st.session_state.time_limit_minutes} minutes\n")
+    # Count previous attempts for this student
+    records = sheet.get_all_records()
+    attempt_number = sum(1 for r in records if r["Student"] == name) + 1
 
-        if st.session_state.wrong_questions:
-            f.write("Wrong Answers:\n")
-            for q in st.session_state.wrong_questions:
-                f.write(q + "\n")
+    wrong_answers = " | ".join(st.session_state.wrong_questions)
+
+    sheet.append_row([
+        name,
+        attempt_number,
+        str(datetime.now()),
+        st.session_state.score,
+        st.session_state.total_attempts,
+        round(accuracy, 2),
+        formatted_time,
+        st.session_state.max_number,
+        st.session_state.time_limit_minutes,
+        wrong_answers
+    ])
 
 # -----------------------------
 # START SCREEN
@@ -220,4 +245,5 @@ if st.session_state.game_over:
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
+
 
