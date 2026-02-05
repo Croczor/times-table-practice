@@ -151,18 +151,15 @@ def save_progress():
     wrong_answers = " | ".join(st.session_state.wrong_questions)
 
     row_data = [
-        name,
-        attempt_number,
         formatted_time,
+        st.session_state.name,
         st.session_state.score,
-        st.session_state.total_attempts,
-        round(accuracy, 2),
-        formatted_time,
-        st.session_state.max_number,
-        st.session_state.time_limit_minutes,
-        wrong_answers
+        st.session_state.total_questions,
+        st.session_state.wrong_answers,
+        st.session_state.time_limit
     ]
-    
+
+    # Append starting at B3
     sheet.append_row(
         row_data,
         table_range="B3"
@@ -203,7 +200,7 @@ if not st.session_state.game_started:
 # -----------------------------
 # GAME RUNNING
 # -----------------------------
-else:
+
     if st.session_state.game_started and not st.session_state.game_over:
     
         st.title("Times Table Practice")
@@ -262,6 +259,7 @@ if st.session_state.game_over:
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
+
 
 
 
