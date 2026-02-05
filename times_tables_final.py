@@ -122,7 +122,7 @@ def save_progress():
     
     st.write("Connected to Google Sheets")
     
-    sheet = client.open("1co5kojLIbT4zYpIGQo6hgJLypN5gCQ4mII4Y9TnQgsE/edit?gid=0#gid=0").sheet1
+    sheet = client.open_by_key("1co5kojLIbT4zYpIGQo6hgJLypN5gCQ4mII4Y9TnQgsE").sheet1
     
     
     name = st.session_state.player_name.strip().upper()
@@ -252,6 +252,7 @@ if st.session_state.game_over:
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
+
 
 
 
