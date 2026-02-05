@@ -5,6 +5,9 @@ from datetime import datetime
 import gspread
 from google.oauth2.service_account import Credentials
 
+if st.button("Test Google Sheets Connection"):
+    save_progress()
+
 # -----------------------------
 # PAGE CONFIG
 # -----------------------------
@@ -248,6 +251,7 @@ if st.session_state.game_over:
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
+
 
 
 
