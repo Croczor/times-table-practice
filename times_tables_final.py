@@ -204,29 +204,29 @@ if not st.session_state.game_started:
 # GAME RUNNING
 # -----------------------------
 else:
-if st.session_state.game_started and not st.session_state.game_over:
-
-    st.title("Times Table Practice")
-
-    elapsed = time.time() - st.session_state.start_time
-    total_limit_seconds = st.session_state.time_limit_minutes * 60
-    remaining = total_limit_seconds - elapsed
-
-    if remaining <= 0:
-        end_game("Time Expired")
+    if st.session_state.game_started and not st.session_state.game_over:
+    
+        st.title("Times Table Practice")
+    
+        elapsed = time.time() - st.session_state.start_time
+        total_limit_seconds = st.session_state.time_limit_minutes * 60
+        remaining = total_limit_seconds - elapsed
+    
+        if remaining <= 0:
+            end_game("Time Expired")
+            st.rerun()
+    
+        progress = max(remaining / total_limit_seconds, 0)
+        st.progress(progress)
+    
+        st.markdown(f"### Time Remaining: {format_time(remaining)}")
+        st.markdown(f"### Question {st.session_state.question_number} / {st.session_state.total_questions}")
+        st.markdown(f"## :yellow[{st.session_state.question} = ?]")
+    
+        st.text_input("Your Answer", key="answer_input", on_change=submit_answer)
+    
+        time.sleep(0.1)
         st.rerun()
-
-    progress = max(remaining / total_limit_seconds, 0)
-    st.progress(progress)
-
-    st.markdown(f"### Time Remaining: {format_time(remaining)}")
-    st.markdown(f"### Question {st.session_state.question_number} / {st.session_state.total_questions}")
-    st.markdown(f"## :yellow[{st.session_state.question} = ?]")
-
-    st.text_input("Your Answer", key="answer_input", on_change=submit_answer)
-
-    time.sleep(0.1)
-    st.rerun()
 
 # -----------------------------
 # GAME OVER SCREEN
@@ -262,6 +262,7 @@ if st.session_state.game_over:
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
+
 
 
 
