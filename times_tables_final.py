@@ -119,10 +119,11 @@ def save_progress():
     )
 
     client = gspread.authorize(creds)
-
-    sheet = client.open("1co5kojLIbT4zYpIGQo6hgJLypN5gCQ4mII4Y9TnQgsE/edit?gid=0#gid=0").sheet1
     
     st.write("Connected to Google Sheets")
+    
+    sheet = client.open("1co5kojLIbT4zYpIGQo6hgJLypN5gCQ4mII4Y9TnQgsE/edit?gid=0#gid=0").sheet1
+    
     
     name = st.session_state.player_name.strip().upper()
     if not name:
@@ -247,6 +248,7 @@ if st.session_state.game_over:
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
+
 
 
 
