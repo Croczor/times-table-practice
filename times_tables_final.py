@@ -131,18 +131,24 @@ def save_progress():
         "1co5kojLIbT4zYpIGQo6hgJLypN5gCQ4mII4Y9TnQgsE"
     ).sheet1
 
-    # AEST time
+    # -------------------------
+    # AEST DATE/TIME
+    # -------------------------
     aest = pytz.timezone("Australia/Sydney")
     now = datetime.now(aest)
     formatted_time = now.strftime("%d/%m/%Y %H:%M:%S")
 
-    # Calculate elapsed time
+    # -------------------------
+    # ELAPSED TIME (mm:ss)
+    # -------------------------
     total_seconds = int(time.time() - st.session_state.start_time)
     minutes = total_seconds // 60
     seconds = total_seconds % 60
     time_string = f"{minutes:02}:{seconds:02}"
 
-    # Calculate accuracy safely
+    # -------------------------
+    # ACCURACY
+    # -------------------------
     if st.session_state.total_attempts > 0:
         accuracy = (
             st.session_state.score /
@@ -151,25 +157,41 @@ def save_progress():
     else:
         accuracy = 0
 
-    # Calculate average time per question
-    if st.session_state.total_attempts > 0:
-        avg_time = total_seconds / st.session_state.total_attempts
+    # -------------------------
+    # WRONG ANSWERS STRING
+    # -------------------------
+    if st.session_state.wrong_questions:
+        wrong_string = " | ".join(st.session_state.wrong_questions)
     else:
-        avg_time = 0
+        wrong_string = "None"
 
+    # -------------------------
+    # CALCULATE ATTEMPT NUMBER
+    # -------------------------
+    student_name = st.session_state.player_name
+
+    # Get existing names in column B (Student column)
+    existing_students = sheet.col_values(2)[2:]  # skip first two rows
+
+    attempt_number = existing_students.count(student_name) + 1
+
+    # -------------------------
+    # FINAL ROW STRUCTURE
+    # -------------------------
     row_data = [
-        formatted_time,
-        st.session_state.player_name,          # FIXED
-        st.session_state.score,
-        st.session_state.total_questions,
-        f"{accuracy:.2f}%",
-        f"{avg_time:.2f}s",
-        time_string,
-        st.session_state.time_limit_minutes     # FIXED
+        student_name,                     # Student
+        f"Attempt {attempt_number}",      # Attempt
+        formatted_time,                   # Date
+        st.session_state.score,           # Score
+        st.session_state.total_questions, # MaxQuestions
+        f"{accuracy:.2f}%",               # Accuracy
+        time_string,                      # Time
+        st.session_state.max_number,      # MaxNumber
+        st.session_state.time_limit_minutes, # TimeLimit
+        wrong_string                      # WrongAnswers
     ]
 
     sheet.append_row(row_data, table_range="B3")
-
 
 
 # -----------------------------
@@ -266,6 +288,7 @@ if st.session_state.game_over:
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
+
 
 
 
