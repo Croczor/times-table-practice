@@ -67,7 +67,7 @@ def new_question():
 
 def start_game():
 
-        if not st.session_state.player_name.strip():
+    if not st.session_state.player_name.strip():
         st.warning("Please enter your name before starting.")
         return
     
@@ -266,6 +266,7 @@ if st.session_state.game_over:
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
+
 
 
 
