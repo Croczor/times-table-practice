@@ -134,7 +134,7 @@ def save_progress():
     # -------------------------
     # AEST DATE/TIME
     # -------------------------
-    aest = pytz.timezone("Australia/Sydney")
+    aest = pytz.timezone("Australia/Brisbane")
     now = datetime.now(aest)
     formatted_time = now.strftime("%d/%m/%Y %H:%M:%S")
 
@@ -288,6 +288,7 @@ if st.session_state.game_over:
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
+
 
 
 
