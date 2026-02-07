@@ -131,9 +131,13 @@ def save_progress():
     aest = pytz.timezone("Australia/Sydney")
     now = datetime.now(aest)
     formatted_time = now.strftime("%d/%m/%Y %H:%M:%S")
-
-    # Format time played (mm:ss)
-    total_seconds = int(st.session_state.elapsed_time)
+    
+    # Calculate elapsed time safely
+    if "start_time" in st.session_state:
+        total_seconds = int(time.time() - st.session_state.start_time)
+    else:
+        total_seconds = 0
+    
     minutes = total_seconds // 60
     seconds = total_seconds % 60
     time_string = f"{minutes:02}:{seconds:02}"
@@ -248,6 +252,7 @@ if st.session_state.game_over:
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
+
 
 
 
