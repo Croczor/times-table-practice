@@ -108,9 +108,6 @@ def submit_answer():
 
 def save_progress():
 
-    import gspread
-    from google.oauth2.service_account import Credentials
-    from datetime import datetime
     import pytz
 
     scope = [
@@ -125,42 +122,58 @@ def save_progress():
 
     client = gspread.authorize(creds)
 
-    sheet = client.open_by_key("1co5kojLIbT4zYpIGQo6hgJLypN5gCQ4mII4Y9TnQgsE").sheet1
+    sheet = client.open_by_key(
+        "1co5kojLIbT4zYpIGQo6hgJLypN5gCQ4mII4Y9TnQgsE"
+    ).sheet1
 
-    # Convert time to AEST
+    # AEST time
     aest = pytz.timezone("Australia/Sydney")
     now = datetime.now(aest)
     formatted_time = now.strftime("%d/%m/%Y %H:%M:%S")
-    
-    # Calculate elapsed time safely
-    if "start_time" in st.session_state:
-        total_seconds = int(time.time() - st.session_state.start_time)
-    else:
-        total_seconds = 0
-    
+
+    # Calculate elapsed time
+    total_seconds = int(time.time() - st.session_state.start_time)
     minutes = total_seconds // 60
     seconds = total_seconds % 60
     time_string = f"{minutes:02}:{seconds:02}"
 
-    # Row data
+    # Calculate accuracy safely
+    if st.session_state.total_attempts > 0:
+        accuracy = (
+            st.session_state.score /
+            st.session_state.total_attempts
+        ) * 100
+    else:
+        accuracy = 0
+
+    # Calculate average time per question
+    if st.session_state.total_attempts > 0:
+        avg_time = total_seconds / st.session_state.total_attempts
+    else:
+        avg_time = 0
+
     row_data = [
         formatted_time,
-        st.session_state.name,
+        st.session_state.player_name,          # FIXED
         st.session_state.score,
         st.session_state.total_questions,
-        f"{st.session_state.accuracy:.1f}%",
-        f"{st.session_state.avg_time:.2f}s",
+        f"{accuracy:.2f}%",
+        f"{avg_time:.2f}s",
         time_string,
-        st.session_state.time_limit
+        st.session_state.time_limit_minutes     # FIXED
     ]
 
-    # Append to B3 downward
     sheet.append_row(row_data, table_range="B3")
+
 
 
 # -----------------------------
 # START SCREEN
 # -----------------------------
+
+if not st.session_state.player_name.strip():
+    st.warning("Please enter your name before starting.")
+    return
 
 if not st.session_state.game_started:
 
@@ -252,6 +265,7 @@ if st.session_state.game_over:
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
+
 
 
 
