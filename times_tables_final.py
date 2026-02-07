@@ -66,6 +66,11 @@ def new_question():
     return f"{n1} × {n2}"
 
 def start_game():
+
+    if not st.session_state.player_name.strip():
+    st.warning("Please enter your name before starting.")
+    return
+    
     st.session_state.game_started = True
     st.session_state.game_over = False
     st.session_state.score = 0
@@ -171,10 +176,6 @@ def save_progress():
 # START SCREEN
 # -----------------------------
 
-if not st.session_state.player_name.strip():
-    st.warning("Please enter your name before starting.")
-    return
-
 if not st.session_state.game_started:
 
     st.title("Times Table Practice System")
@@ -265,6 +266,7 @@ if st.session_state.game_over:
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
+
 
 
 
